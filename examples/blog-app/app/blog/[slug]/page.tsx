@@ -1,9 +1,15 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/posts';
-import { MDXContent } from '@/components/blog/mdx-content';
 import { formatDate } from '@/lib/utils';
+
+// Dynamically import MDXContent with SSR disabled
+const MDXContent = dynamic(
+  () => import('@/components/blog/mdx-content').then((mod) => mod.MDXContent),
+  { ssr: false }
+);
 
 interface BlogPostPageProps {
   params: {
