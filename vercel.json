@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd examples/blog-app && npm run build",
+  "outputDirectory": "examples/blog-app/.next",
+  "framework": "nextjs",
+  "installCommand": "cd examples/blog-app && npm install",
+  "regions": ["lhr1"]
+}

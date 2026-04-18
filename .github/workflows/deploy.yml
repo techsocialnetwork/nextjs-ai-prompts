@@ -1,0 +1,59 @@
+name: Deploy & Validate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd examples/blog-app
+          npm ci
+
+      - name: Type check
+        run: |
+          cd examples/blog-app
+          npm run type-check || npx tsc --noEmit
+
+      - name: Build
+        run: |
+          cd examples/blog-app
+          npm run build
+
+  # Uncomment to enable automated content processing
+  # process-content:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     
+  #     - name: Generate sitemap
+  #       run: |
+  #         # Auto-generate sitemap from MDX files
+  #         node scripts/generate-sitemap.js
+  #     
+  #     - name: Optimize images
+  #       run: |
+  #         # Compress images in public folder
+  #         npx imagemin-cli public/images/* --out-dir=public/images
+  #     
+  #     - name: Commit changes
+  #       run: |
+  #         git config --local user.email "action@github.com"
+  #         git config --local user.name "GitHub Action"
+  #         git add -A
+  #         git diff --quiet && git diff --staged --quiet || git commit -m "Auto: Process content"
+  #         git push
