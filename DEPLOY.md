@@ -1,86 +1,111 @@
-# Deploy to Vercel
+# Deploy Next.js Blog to Vercel
 
-## Quick Deploy (2 minutes)
+## Option 1: Manual Deploy (Easiest)
 
-### Option 1: Vercel Dashboard (Recommended)
-
-1. Go to [vercel.com/new](https://vercel.com/new)
-2. Import Git Repository → Select `techsocialnetwork/nextjs-ai-prompts`
-3. Configure:
-   - **Framework Preset**: Next.js
-   - **Root Directory**: `examples/blog-app`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `.next`
-4. Click **Deploy**
-
-### Option 2: Vercel CLI
+Since the blog is in a subdirectory, use the Vercel CLI:
 
 ```bash
-# Install Vercel CLI
+# Install Vercel CLI globally
 npm i -g vercel
 
-# Login
+# Login to Vercel
 vercel login
 
-# Deploy
-vercel --cwd examples/blog-app
+# Navigate to blog directory and deploy
+cd examples/blog-app
+vercel
+
+# Follow prompts:
+# - Set up and deploy? [Y/n] → Y
+# - Link to existing project? [y/N] → N (first time)
+# - What's your project name? → nextjs-blog-ai (or your choice)
 ```
 
-## Automated Pipeline Features
+## Option 2: GitHub Integration (Recommended for CI/CD)
 
-Once connected, you get:
+### Step 1: Create Vercel Project
 
-| Feature | How It Works |
-|---------|--------------|
-| **Auto-deploy** | Push to `main` → Live in ~30 seconds |
-| **Preview URLs** | Every PR gets its own URL |
-| **Branch deploys** | Push any branch → Unique preview URL |
-| **GitHub integration** | Deploy status in PRs |
+```bash
+cd examples/blog-app
 
-## GitHub Actions (Already Configured)
-
-The `.github/workflows/deploy.yml` runs on every push:
-
-1. **Type checking** - Validates TypeScript
-2. **Build test** - Ensures build succeeds
-3. **(Optional) Content processing** - Uncomment to enable:
-   - Auto-generate sitemap
-   - Optimize images
-   - Format MDX files
-
-## Environment Variables (if needed)
-
-Add in Vercel Dashboard → Settings → Environment Variables:
-
-```
-NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
+# This creates vercel.json config
+vercel --confirm
 ```
 
-## Custom Domain (Optional)
+### Step 2: Get Environment Variables
 
-1. Vercel Dashboard → Domains
-2. Add your domain
-3. Update DNS records as instructed
+After first deploy, go to Vercel Dashboard:
+1. Project Settings → General
+2. Copy **Project ID**
+3. Go to Account Settings → Tokens
+4. Create new token
 
-## Monitoring
+### Step 3: Add GitHub Secrets
 
-- **Analytics**: Built-in (free tier)
-- **Speed Insights**: Automatic
-- **Logs**: Real-time in dashboard
+Go to GitHub repo → Settings → Secrets and variables → Actions:
+
+Add these secrets:
+- `VERCEL_TOKEN` - Your Vercel token
+- `VERCEL_ORG_ID` - Your Vercel org ID (from `~/.vercel/auth.json` or dashboard URL)
+- `VERCEL_PROJECT_ID` - Your project ID
+
+### Step 4: Push to Deploy
+
+```bash
+git add .
+git commit -m "Setup Vercel deployment"
+git push
+```
+
+GitHub Action will auto-deploy!
+
+## Option 3: Vercel Dashboard (Subdirectory Issue)
+
+If using dashboard import:
+
+1. Go to https://vercel.com/new
+2. Import `nextjs-ai-prompts` repo
+3. **CRITICAL**: Override build settings:
+   - **Framework Preset**: Next.js
+   - **Root Directory**: `examples/blog-app` ← Must set this!
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.next`
+4. Deploy
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Build fails | Check `examples/blog-app/package.json` has `build` script |
-| 404 on routes | Ensure `next.config.js` has `output: 'export'` if static |
-| Images broken | Use `next/image` with proper domains config |
+### "No Next.js version detected"
 
-## Next Steps
+Make sure Root Directory is set to `examples/blog-app` where package.json lives.
 
-After deploy:
-1. Test the live URL
-2. Create a new branch: `git checkout -b content/new-post`
-3. Add MDX file to `examples/blog-app/content/posts/`
-4. Push → See preview URL in PR
-5. Merge → Auto-deploy to production
+### Build fails
+
+Check that `next` is in dependencies:
+```bash
+cd examples/blog-app
+cat package.json | grep next
+```
+
+### 404 errors
+
+Add to `next.config.js`:
+```javascript
+module.exports = {
+  output: 'export',  // For static export
+  distDir: 'dist',
+}
+```
+
+## Post-Deploy
+
+Your blog will be at:
+- Production: `https://your-project.vercel.app`
+- Previews: `https://your-project-git-branch.vercel.app`
+
+## Automated Features
+
+Once connected:
+- ✅ Push to `main` → Auto-deploy production
+- ✅ Pull Request → Preview deployment
+- ✅ Branch push → Preview URL
+- ✅ GitHub status checks

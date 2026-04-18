@@ -1,7 +1,20 @@
 {
-  "buildCommand": "cd examples/blog-app && npm run build",
-  "outputDirectory": "examples/blog-app/.next",
-  "framework": "nextjs",
-  "installCommand": "cd examples/blog-app && npm install",
-  "regions": ["lhr1"]
+  "version": 2,
+  "builds": [
+    {
+      "src": "examples/blog-app/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "examples/blog-app/$1"
+    }
+  ],
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  }
 }
