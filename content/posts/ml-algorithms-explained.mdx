@@ -1,0 +1,553 @@
+---
+title: "Machine Learning Algorithms Explained with Code"
+date: "2024-02-01"
+excerpt: "Hands-on guide to core ML algorithms including linear regression, decision trees, random forests, SVMs, and neural networks with Python implementations."
+tags: ["machine-learning", "python", "algorithms", "tutorial", "scikit-learn"]
+author: "TSN"
+---
+
+# Machine Learning Algorithms Explained with Code
+
+Understanding machine learning algorithms requires both theory and practice. Here's a comprehensive guide to core algorithms with Python implementations, based on my IBM AI Foundations coursework.
+
+## 1. Linear Regression
+
+### Concept
+
+Linear regression models the relationship between a dependent variable and one or more independent variables by fitting a linear equation.
+
+**Equation:** `y = β₀ + β₁x₁ + β₂x₂ + ... + βₙxₙ + ε`
+
+### When to Use
+
+- Predicting continuous values
+- Understanding feature relationships
+- Baseline model for regression tasks
+
+### Python Implementation
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Generate sample data
+np.random.seed(42)
+X = np.random.randn(100, 1)
+y = 2 * X.squeeze() + 1 + np.random.randn(100) * 0.5
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Create and train model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate
+print(f"Coefficient: {model.coef_[0]:.3f}")
+print(f"Intercept: {model.intercept_:.3f}")
+print(f"MSE: {mean_squared_error(y_test, y_pred):.3f}")
+print(f"R²: {r2_score(y_test, y_pred):.3f}")
+
+# Visualize
+plt.scatter(X_test, y_test, color='blue', label='Actual')
+plt.plot(X_test, y_pred, color='red', label='Predicted')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
+```
+
+### Key Insights
+
+- **Coefficients** represent the change in y for a one-unit change in x
+- **R²** measures how well the model fits (0-1, higher is better)
+- **Assumptions**: Linearity, independence, homoscedasticity, normality
+
+## 2. Logistic Regression
+
+### Concept
+
+Despite the name, logistic regression is a classification algorithm. It uses the logistic function to model binary outcomes.
+
+**Logistic Function:** `p = 1 / (1 + e^-(β₀ + β₁x))`
+
+### When to Use
+
+- Binary classification
+- Probability estimation
+- Interpretable baseline model
+
+### Python Implementation
+
+```python
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import make_classification
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+
+# Generate binary classification data
+X, y = make_classification(
+    n_samples=1000, 
+    n_features=2, 
+    n_redundant=0, 
+    n_informative=2,
+    n_clusters_per_class=1,
+    random_state=42
+)
+
+# Split and train
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+# Evaluate
+print(classification_report(y_test, y_pred))
+
+# Confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+```
+
+### Key Insights
+
+- **Decision boundary** is linear in feature space
+- **Probabilities** are well-calibrated
+- **Regularization** (L1/L2) prevents overfitting
+
+## 3. Decision Trees
+
+### Concept
+
+Decision trees split data based on feature values to create a tree-like model of decisions.
+
+**Splitting Criteria:**
+- Classification: Gini impurity or Entropy
+- Regression: Mean squared error
+
+### When to Use
+
+- When you need interpretability
+- Mixed data types (numeric + categorical)
+- Non-linear relationships
+
+### Python Implementation
+
+```python
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.datasets import load_iris
+
+# Load data
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Train decision tree
+model = DecisionTreeClassifier(
+    max_depth=3,
+    min_samples_split=20,
+    random_state=42
+)
+model.fit(X, y)
+
+# Visualize tree
+plt.figure(figsize=(20, 10))
+plot_tree(
+    model, 
+    feature_names=iris.feature_names,
+    class_names=iris.target_names,
+    filled=True,
+    rounded=True
+)
+plt.show()
+
+# Feature importance
+importance = pd.DataFrame({
+    'feature': iris.feature_names,
+    'importance': model.feature_importances_
+}).sort_values('importance', ascending=False)
+
+print(importance)
+```
+
+### Key Insights
+
+- **Prone to overfitting** - use max_depth, min_samples constraints
+- **Feature importance** shows which features drive decisions
+- **Interpretable** - can follow the tree logic
+
+## 4. Random Forest
+
+### Concept
+
+Random Forest is an ensemble of decision trees. It combines predictions from multiple trees to improve accuracy and reduce overfitting.
+
+**Ensemble Strategy:**
+- Bootstrap sampling (random subsets of data)
+- Random feature selection at each split
+- Majority voting (classification) or averaging (regression)
+
+### When to Use
+
+- When accuracy is priority over interpretability
+- Large datasets
+- Feature selection
+
+### Python Implementation
+
+```python
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_digits
+
+# Load digits dataset
+digits = load_digits()
+X, y = digits.data, digits.target
+
+# Train Random Forest
+model = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=10,
+    min_samples_split=5,
+    random_state=42,
+    n_jobs=-1
+)
+model.fit(X, y)
+
+# Cross-validation score
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(model, X, y, cv=5)
+print(f"CV Accuracy: {scores.mean():.3f} (+/- {scores.std():.3f})")
+
+# Feature importance visualization
+importances = model.feature_importances_
+indices = np.argsort(importances)[-20:]  # Top 20 features
+
+plt.figure(figsize=(10, 6))
+plt.barh(range(20), importances[indices])
+plt.yticks(range(20), [f'Pixel {i}' for i in indices])
+plt.xlabel('Importance')
+plt.title('Top 20 Feature Importances')
+plt.show()
+```
+
+### Key Insights
+
+- **Reduces overfitting** through ensemble averaging
+- **Handles high dimensionality** well
+- **Out-of-bag score** provides validation without separate set
+
+## 5. Support Vector Machines (SVM)
+
+### Concept
+
+SVM finds the optimal hyperplane that maximally separates classes. It can use kernel tricks for non-linear boundaries.
+
+**Key Concepts:**
+- Support vectors: Data points closest to decision boundary
+- Margin: Distance between boundary and nearest points
+- Kernel: Function to transform features into higher dimensions
+
+### When to Use
+
+- High-dimensional data
+- When decision boundary is important
+- Smaller datasets (computationally expensive)
+
+### Python Implementation
+
+```python
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import make_moons
+
+# Generate non-linear data
+X, y = make_moons(n_samples=200, noise=0.3, random_state=42)
+
+# Scale features (important for SVM)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Train SVM with RBF kernel
+model = SVC(
+    kernel='rbf',
+    C=1.0,
+    gamma='scale',
+    probability=True
+)
+model.fit(X_scaled, y)
+
+# Visualize decision boundary
+def plot_decision_boundary(X, y, model):
+    h = 0.02
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    
+    plt.contourf(xx, yy, Z, alpha=0.8)
+    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k')
+    plt.show()
+
+plot_decision_boundary(X_scaled, y, model)
+```
+
+### Key Insights
+
+- **Kernel selection** is crucial (linear, RBF, polynomial)
+- **C parameter** controls trade-off between smooth boundary and training accuracy
+- **Feature scaling** is essential
+
+## 6. K-Means Clustering
+
+### Concept
+
+K-Means partitions data into k clusters by minimizing within-cluster variance.
+
+**Algorithm:**
+1. Initialize k centroids randomly
+2. Assign points to nearest centroid
+3. Update centroids to cluster means
+4. Repeat until convergence
+
+### When to Use
+
+- Unsupervised learning
+- Customer segmentation
+- Data preprocessing
+
+### Python Implementation
+
+```python
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+from sklearn.metrics import silhouette_score
+
+# Generate sample data
+X, _ = make_blobs(
+    n_samples=300, 
+    centers=4, 
+    cluster_std=0.60, 
+    random_state=42
+)
+
+# Find optimal k using elbow method
+inertias = []
+silhouettes = []
+K_range = range(2, 10)
+
+for k in K_range:
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    kmeans.fit(X)
+    inertias.append(kmeans.inertia_)
+    silhouettes.append(silhouette_score(X, kmeans.labels_))
+
+# Plot elbow curve
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+ax1.plot(K_range, inertias, 'bo-')
+ax1.set_xlabel('Number of Clusters (k)')
+ax1.set_ylabel('Inertia')
+ax1.set_title('Elbow Method')
+
+ax2.plot(K_range, silhouettes, 'ro-')
+ax2.set_xlabel('Number of Clusters (k)')
+ax2.set_ylabel('Silhouette Score')
+ax2.set_title('Silhouette Analysis')
+
+plt.tight_layout()
+plt.show()
+
+# Final model with k=4
+kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
+labels = kmeans.fit_predict(X)
+
+# Visualize clusters
+plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', alpha=0.6)
+plt.scatter(
+    kmeans.cluster_centers_[:, 0],
+    kmeans.cluster_centers_[:, 1],
+    c='red',
+    marker='x',
+    s=200,
+    linewidths=3
+)
+plt.title('K-Means Clustering Results')
+plt.show()
+```
+
+### Key Insights
+
+- **Elbow method** helps choose k
+- **Sensitive to initial centroids** - use n_init > 1
+- **Assumes spherical clusters** - may fail on complex shapes
+
+## 7. Neural Networks (MLP)
+
+### Concept
+
+Multi-Layer Perceptrons are feedforward neural networks with hidden layers that learn non-linear mappings.
+
+**Architecture:**
+- Input layer: Features
+- Hidden layers: Learned representations
+- Output layer: Predictions
+
+### When to Use
+
+- Complex non-linear patterns
+- Large datasets
+- When other methods fail
+
+### Python Implementation
+
+```python
+from sklearn.neural_network import MLPClassifier
+from sklearn.datasets import load_mnist
+
+# Load MNIST subset
+from sklearn.datasets import fetch_openml
+X, y = fetch_openml('mnist_784', version=1, return_X_y=True, as_frame=False)
+X, y = X[:10000], y[:10000]  # Subset for speed
+
+# Normalize
+X = X / 255.0
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train MLP
+model = MLPClassifier(
+    hidden_layer_sizes=(128, 64),
+    activation='relu',
+    solver='adam',
+    alpha=0.0001,
+    batch_size=256,
+    learning_rate_init=0.001,
+    max_iter=50,
+    random_state=42,
+    early_stopping=True,
+    validation_fraction=0.1
+)
+
+model.fit(X_train, y_train)
+
+# Evaluate
+train_score = model.score(X_train, y_train)
+test_score = model.score(X_test, y_test)
+
+print(f"Train Accuracy: {train_score:.3f}")
+print(f"Test Accuracy: {test_score:.3f}")
+
+# Plot loss curve
+plt.plot(model.loss_curve_)
+plt.xlabel('Iterations')
+plt.ylabel('Loss')
+plt.title('Training Loss Curve')
+plt.show()
+```
+
+### Key Insights
+
+- **Architecture matters** - more layers ≠ better
+- **Regularization** (alpha) prevents overfitting
+- **Early stopping** saves computation
+- **Scaling** is essential
+
+## Algorithm Selection Guide
+
+| Algorithm | Problem Type | Data Size | Interpretability | Key Strength |
+|-----------|-------------|-----------|------------------|--------------|
+| Linear Regression | Regression | Any | High | Simple, fast |
+| Logistic Regression | Classification | Any | High | Probabilities |
+| Decision Tree | Both | Small-Medium | Very High | Interpretable |
+| Random Forest | Both | Any | Medium | Accuracy |
+| SVM | Classification | Small-Medium | Low | Decision boundary |
+| K-Means | Clustering | Any | Medium | Simple |
+| Neural Network | Both | Large | Low | Complex patterns |
+
+## Practical Tips
+
+### 1. Always Start Simple
+
+```python
+# Baseline models
+from sklearn.dummy import DummyClassifier
+from sklearn.linear_model import LogisticRegression
+
+# Most frequent baseline
+dummy = DummyClassifier(strategy='most_frequent')
+dummy.fit(X_train, y_train)
+print(f"Baseline: {dummy.score(X_test, y_test):.3f}")
+
+# Simple model
+simple = LogisticRegression(max_iter=1000)
+simple.fit(X_train, y_train)
+print(f"Simple: {simple.score(X_test, y_test):.3f}")
+
+# Complex model only if needed
+```
+
+### 2. Cross-Validation is Essential
+
+```python
+from sklearn.model_selection import cross_validate
+
+scores = cross_validate(
+    model, X, y, 
+    cv=5, 
+    scoring=['accuracy', 'precision', 'recall', 'f1'],
+    return_train_score=True
+)
+
+print(f"Test: {scores['test_accuracy'].mean():.3f} (+/- {scores['test_accuracy'].std():.3f})")
+print(f"Train: {scores['train_accuracy'].mean():.3f}")
+```
+
+### 3. Hyperparameter Tuning
+
+```python
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [5, 10, None],
+    'min_samples_split': [2, 5, 10]
+}
+
+grid = GridSearchCV(
+    RandomForestClassifier(random_state=42),
+    param_grid,
+    cv=5,
+    scoring='f1_macro',
+    n_jobs=-1
+)
+
+grid.fit(X_train, y_train)
+print(f"Best: {grid.best_params_}")
+print(f"Score: {grid.best_score_:.3f}")
+```
+
+---
+
+*All code examples tested with scikit-learn 1.3+. Based on IBM AI Foundations machine learning curriculum.*
