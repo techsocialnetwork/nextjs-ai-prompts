@@ -1,0 +1,64 @@
+---
+title: "Hello World - Building with Next.js 14"
+date: "2024-01-15"
+excerpt: "Welcome to my new blog built with Next.js 14, React Server Components, and AI-powered development."
+tags: ["nextjs", "react", "webdev", "ai"]
+author: "Your Name"
+---
+
+# Hello World
+
+This is my first blog post, built entirely with **Next.js 14** and **AI assistance**.
+
+## Why Next.js 14?
+
+Next.js 14 introduces several game-changing features:
+
+- **Server Components by default** — Better performance, smaller bundles
+- **Server Actions** — Mutations without API routes
+- **Partial Prerendering** — Best of static and dynamic
+- **Turbopack** — Faster development builds
+
+## The AI Workflow
+
+This entire blog was created using AI prompts:
+
+1. **Layout prompts** — Dashboard structure, navigation
+2. **Data fetching prompts** — MDX parsing, static generation
+3. **Styling prompts** — Tailwind configuration, dark mode
+4. **Component prompts** — Cards, buttons, forms
+
+## Code Example
+
+Here's a simple Server Component:
+
+```typescript
+export default async function BlogPage() {
+  const posts = await getAllPosts();
+  
+  return (
+    <div>
+      {posts.map(post => (
+        <PostCard key={post.slug} post={post} />
+      ))}
+    </div>
+  );
+}
+```
+
+Notice how we can use `async` directly in the component — no `useEffect`, no client-side data fetching.
+
+## What's Next?
+
+I'll be writing about:
+
+- Advanced Server Component patterns
+- Optimizing Core Web Vitals
+- Building with AI assistance
+- Real-world Next.js architecture
+
+Stay tuned!
+
+---
+
+*Built with Next.js 14, TypeScript, Tailwind CSS, and AI.*
